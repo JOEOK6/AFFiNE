@@ -1,22 +1,21 @@
 import {
+    BooleanColumnValue,
     Column,
     ColumnType,
+    CommentColumnValue,
     ContentColumnValue,
-    BooleanColumnValue,
-    StringColumnValue,
-    FileColumnValue,
     DateColumnValue,
     EnumColumnValue,
-    CommentColumnValue,
+    FileColumnValue,
     FilterConstraint,
     SorterConstraint,
+    StringColumnValue,
 } from './types';
 
 export enum GroupScene {
     page = 'page',
     table = 'table',
     kanban = 'kanban',
-    whiteboard = 'whiteboard',
 }
 
 /**

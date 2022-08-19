@@ -1,22 +1,29 @@
-import { useEffect, useState } from 'react';
-import { Tldraw } from '@toeverything/components/board-draw';
-import { tools } from '@toeverything/components/board-tools';
-import { getSession } from '@toeverything/components/board-sessions';
-import * as commands from '@toeverything/components/board-commands';
-import { TldrawApp, deepCopy } from '@toeverything/components/board-state';
-import { TDShapeType } from '@toeverything/components/board-types';
-import { services } from '@toeverything/datasource/db-service';
-import { useShapes } from './hooks';
-import { RecastBlockProvider } from '@toeverything/components/editor-core';
 import { createEditor } from '@toeverything/components/affine-editor';
+import * as commands from '@toeverything/components/board-commands';
+import { Tldraw } from '@toeverything/components/board-draw';
+import { getSession } from '@toeverything/components/board-sessions';
+import { deepCopy, TldrawApp } from '@toeverything/components/board-state';
+import { tools } from '@toeverything/components/board-tools';
+import { TDShapeType } from '@toeverything/components/board-types';
+import {
+    RecastBlockProvider,
+    getClipDataOfBlocksById,
+} from '@toeverything/components/editor-core';
+import { services } from '@toeverything/datasource/db-service';
 import { AsyncBlock, BlockEditor } from '@toeverything/framework/virgo';
+import { useEffect, useState } from 'react';
+import { useShapes } from './hooks';
 
 interface AffineBoardProps {
     workspace: string;
     rootBlockId: string;
 }
 
-const AffineBoard = ({ workspace, rootBlockId }: AffineBoardProps) => {
+const AffineBoard = ({
+    workspace,
+    rootBlockId,
+    editor,
+}: AffineBoardProps & { editor: BlockEditor }) => {
     const [app, set_app] = useState<TldrawApp>();
 
     const [document] = useState(() => {
@@ -61,6 +68,17 @@ const AffineBoard = ({ workspace, rootBlockId }: AffineBoardProps) => {
             callbacks={{
                 onMount(app) {
                     set_app(app);
+                },
+                async onCopy(e, groupIds) {
+                    const clip = await getClipDataOfBlocksById(
+                        editor,
+                        groupIds
+                    );
+
+                    e.clipboardData?.setData(
+                        clip.getMimeType(),
+                        clip.getData()
+                    );
                 },
                 onChangePage(app, shapes, bindings, assets) {
                     Promise.all(
@@ -130,7 +148,11 @@ export const AffineBoardWitchContext = ({
     }, [editor, rootBlockId]);
     return page ? (
         <RecastBlockProvider block={page}>
-            <AffineBoard workspace={workspace} rootBlockId={rootBlockId} />
+            <AffineBoard
+                workspace={workspace}
+                rootBlockId={rootBlockId}
+                editor={editor}
+            />
         </RecastBlockProvider>
     ) : null;
 };
